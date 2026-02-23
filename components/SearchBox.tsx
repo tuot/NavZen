@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { Search, Sun, Moon, ChevronDown, Clock, X } from "lucide-react";
 
 const HISTORY_KEY = "search-history";
+const ENGINE_KEY = "selected-engine";
 const MAX_HISTORY = 50;
 
 type SearchEngine = {
@@ -64,6 +65,7 @@ export function SearchBox() {
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [currentTime, setCurrentTime] = useState("");
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -71,12 +73,42 @@ export function SearchBox() {
 
   useEffect(() => setMounted(true), []);
 
-  // 从 localStorage 加载历史
+  // Load history & saved engine from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem(HISTORY_KEY);
       if (saved) setHistory(JSON.parse(saved));
+      const savedEngine = localStorage.getItem(ENGINE_KEY);
+      if (savedEngine) {
+        const engine = searchEngines.find((e) => e.id === savedEngine);
+        if (engine) setSelectedEngine(engine);
+      }
     } catch {}
+  }, []);
+
+  // Clock
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      );
+    };
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Keyboard shortcut: "/" to focus search
+  useEffect(() => {
+    function handleGlobalKey(e: KeyboardEvent) {
+      if (e.key === "/" && document.activeElement !== inputRef.current) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleGlobalKey);
+    return () => document.removeEventListener("keydown", handleGlobalKey);
   }, []);
 
   const addToHistory = useCallback((query: string) => {
@@ -96,7 +128,7 @@ export function SearchBox() {
     });
   }, []);
 
-  // 获取搜索建议
+  // Fetch search suggestions
   useEffect(() => {
     if (searchQuery.trim().length === 0) {
       setSuggestions([]);
@@ -115,7 +147,7 @@ export function SearchBox() {
         setShowSuggestions(data.length > 0);
         setHighlightedIndex(-1);
       } catch {
-        // 请求被取消或失败，忽略
+        // Request cancelled or failed, ignore
       }
     }, 200);
 
@@ -125,7 +157,7 @@ export function SearchBox() {
     };
   }, [searchQuery]);
 
-  // 点击外部关闭下拉菜单
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -141,7 +173,7 @@ export function SearchBox() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 键盘导航
+  // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions || suggestions.length === 0) return;
 
@@ -187,16 +219,23 @@ export function SearchBox() {
   const handleEngineSelect = (engine: SearchEngine) => {
     setSelectedEngine(engine);
     setShowEngineDropdown(false);
+    localStorage.setItem(ENGINE_KEY, engine.id);
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen px-4 pt-[30vh]">
-      {/* 主题切换按钮 */}
+    <div className="flex flex-col items-center min-h-screen px-4 pt-[20vh]">
+      {/* Clock */}
+      {mounted && (
+        <div className="mb-8 text-6xl font-light text-gray-800 dark:text-gray-200 tabular-nums">
+          {currentTime}
+        </div>
+      )}
+      {/* Theme toggle */}
       <div className="absolute top-6 right-6">
         <button
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           className="p-3 rounded-full transition-all duration-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-          aria-label="切换主题"
+          aria-label="Toggle theme"
         >
           {mounted ? (
             theme === "light" ? (
@@ -209,19 +248,19 @@ export function SearchBox() {
           )}
         </button>
       </div>
-      {/* 搜索框容器 */}
+      {/* Search box */}
       <div className="w-full max-w-3xl relative" ref={dropdownRef}>
         <div className="relative flex items-center bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700">
-          {/* 搜索引擎选择器 */}
+          {/* Engine selector */}
           <div className="relative shrink-0" ref={engineDropdownRef}>
             <button
               onClick={() => setShowEngineDropdown(!showEngineDropdown)}
               className="flex items-center justify-center px-4 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-full transition-colors"
             >
-              <img src={selectedEngine.icon} alt={selectedEngine.name} className="w-5 h-5" />
+              <img src={selectedEngine.icon} alt={selectedEngine.name} className="w-5 h-5" onError={(e) => { e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${selectedEngine.name[0]}</text></svg>`; }} />
             </button>
 
-            {/* 搜索引擎下拉菜单 */}
+            {/* Engine dropdown */}
             {showEngineDropdown && (
               <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 min-w-[160px]">
                 {searchEngines.map((engine) => (
@@ -234,7 +273,7 @@ export function SearchBox() {
                         : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                     }`}
                   >
-                    <img src={engine.icon} alt={engine.name} className="w-5 h-5" />
+                    <img src={engine.icon} alt={engine.name} className="w-5 h-5" onError={(e) => { e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${engine.name[0]}</text></svg>`; }} />
                     <span>{engine.name}</span>
                   </button>
                 ))}
@@ -242,10 +281,10 @@ export function SearchBox() {
             )}
           </div>
 
-          {/* 分隔线 */}
+          {/* Divider */}
           <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
 
-          {/* 搜索输入框 */}
+          {/* Search input */}
           <input
             ref={inputRef}
             type="text"
@@ -266,21 +305,21 @@ export function SearchBox() {
                 setShowSuggestions(true);
               }
             }}
-            placeholder="搜索任何内容..."
+            placeholder="Search Anything..."
             className="flex-1 px-4 py-4 bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
           />
 
-          {/* 搜索按钮 */}
+          {/* Search button */}
           <button
             onClick={() => handleSearch(searchQuery)}
             className="p-4 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-r-full transition-colors"
-            aria-label="搜索"
+            aria-label="Search"
           >
             <Search className="w-5 h-5" />
           </button>
         </div>
 
-        {/* 搜索建议下拉列表 */}
+        {/* Suggestions dropdown */}
         {showSuggestions && suggestions.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-40">
             {suggestions.map((suggestion, index) => (
@@ -301,11 +340,11 @@ export function SearchBox() {
           </div>
         )}
 
-        {/* 搜索历史下拉列表 */}
+        {/* History dropdown */}
         {showHistory && !showSuggestions && history.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-40">
             <div className="flex items-center justify-between px-6 py-2 border-b border-gray-100 dark:border-gray-700">
-              <span className="text-xs text-gray-400">搜索历史</span>
+              <span className="text-xs text-gray-400">Search History</span>
               <button
                 onClick={() => {
                   setHistory([]);
@@ -314,7 +353,7 @@ export function SearchBox() {
                 }}
                 className="text-xs text-gray-400 hover:text-red-500 transition-colors"
               >
-                清空
+                Clear
               </button>
             </div>
             {history.slice(0, 10).map((item) => (
@@ -335,7 +374,7 @@ export function SearchBox() {
                 <button
                   onClick={() => removeFromHistory(item)}
                   className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 shrink-0"
-                  aria-label="删除"
+                  aria-label="Remove"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
