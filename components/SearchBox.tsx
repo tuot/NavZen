@@ -41,6 +41,12 @@ const searchEngines: SearchEngine[] = [
     icon: "https://duckduckgo.com/favicon.ico",
   },
   {
+    id: "Dick.ai",
+    name: "Dick.ai",
+    url: "https://duck.ai/chat?duckai=1&q=",
+    icon: "https://duck.ai/favicon.ico",
+  },
+  {
     id: "yahoo",
     name: "Yahoo",
     url: "https://search.yahoo.com/search?p=",
