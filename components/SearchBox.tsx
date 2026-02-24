@@ -247,7 +247,7 @@ export function SearchBox() {
                   onTouchEnd={(e) => {
                     e.preventDefault();
                     addToHistory(item);
-                    window.location.href = `${selectedEngine.url}${encodeURIComponent(item)}`;
+                    window.open(`${selectedEngine.url}${encodeURIComponent(item)}`, "_blank");
                   }}
                   onClick={() => {
                     addToHistory(item);
