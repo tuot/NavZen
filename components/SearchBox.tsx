@@ -234,6 +234,12 @@ export function SearchBox() {
               <div className="flex items-center justify-between px-6 py-2">
                 <span className="text-xs text-gray-400">Search History</span>
                 <button
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    setHistory([]);
+                    localStorage.removeItem(HISTORY_KEY);
+                    setShowHistory(false);
+                  }}
                   onClick={() => {
                     setHistory([]);
                     localStorage.removeItem(HISTORY_KEY);
