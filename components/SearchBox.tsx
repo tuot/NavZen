@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import { Search, Sun, Moon, Clock, X, ArrowLeft } from "lucide-react";
 
@@ -71,18 +72,6 @@ export function SearchBox() {
   const [currentTime, setCurrentTime] = useState("");
 
   const [isFocused, setIsFocused] = useState(false);
-  const mobileInputRef = useRef<HTMLInputElement>(null);
-
-  // Delayed focus for mobile overlay to prevent iOS scroll issue
-  useEffect(() => {
-    if (isFocused) {
-      const timer = setTimeout(() => {
-        mobileInputRef.current?.focus();
-        window.scrollTo(0, 0);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [isFocused]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -171,8 +160,9 @@ export function SearchBox() {
     if (query.trim()) {
       addToHistory(query.trim());
       const searchUrl = `${selectedEngine.url}${encodeURIComponent(query)}`;
-      window.open(searchUrl, "_blank");
       setShowHistory(false);
+      setIsFocused(false);
+      window.open(searchUrl, "_blank");
     }
   };
 
@@ -184,9 +174,9 @@ export function SearchBox() {
 
   return (
     <>
-      {/* Mobile fullscreen search overlay - only on small screens */}
-      {isFocused && (
-        <div className="fixed inset-0 z-50 bg-white dark:bg-gray-900 flex flex-col md:hidden">
+      {/* Mobile fullscreen search overlay - portaled to body */}
+      {isFocused && mounted && createPortal(
+        <div className="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 flex flex-col md:hidden">
           <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
@@ -198,7 +188,7 @@ export function SearchBox() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <input
-              ref={mobileInputRef}
+              autoFocus
               type="text"
               value={searchQuery}
               onChange={(e) => {
@@ -234,29 +224,31 @@ export function SearchBox() {
                 </button>
               </div>
               {history.slice(0, 10).map((item) => (
-                <div key={item} className="flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 group">
+                <div
+                  key={item}
+                  className="w-full flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left cursor-pointer"
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    addToHistory(item);
+                    window.location.href = `${selectedEngine.url}${encodeURIComponent(item)}`;
+                  }}
+                  onClick={() => {
+                    addToHistory(item);
+                    window.open(`${selectedEngine.url}${encodeURIComponent(item)}`, "_blank");
+                  }}
+                >
                   <Clock className="w-4 h-4 text-gray-400 shrink-0" />
-                  <button
-                    className="flex-1 text-left text-gray-700 dark:text-gray-300 truncate"
-                    onClick={() => { setSearchQuery(item); handleSearch(item); }}
-                  >
-                    {item}
-                  </button>
-                  <button
-                    onClick={() => removeFromHistory(item)}
-                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 shrink-0"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                  <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">{item}</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Home view */}
-      <div className="fixed inset-0 flex flex-col items-center px-4 pt-[20vh]">
+      <div className={`fixed inset-0 flex flex-col items-center px-4 pt-[20vh] ${isFocused ? "hidden md:flex" : ""}`}>
         {mounted && (
           <div className="mb-8 text-6xl font-light text-gray-800 dark:text-gray-200 tabular-nums">
             {currentTime}
