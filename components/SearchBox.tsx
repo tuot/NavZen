@@ -65,6 +65,18 @@ export function SearchBox() {
   const [currentTime, setCurrentTime] = useState("");
 
   const [isFocused, setIsFocused] = useState(false);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
+
+  // Delayed focus for mobile overlay to prevent iOS scroll issue
+  useEffect(() => {
+    if (isFocused) {
+      const timer = setTimeout(() => {
+        mobileInputRef.current?.focus();
+        window.scrollTo(0, 0);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [isFocused]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -180,6 +192,7 @@ export function SearchBox() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <input
+              ref={mobileInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => {
@@ -189,7 +202,6 @@ export function SearchBox() {
               onKeyDown={handleKeyDown}
               placeholder="Search Anything..."
               className="flex-1 py-2 bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400"
-              autoFocus
             />
             {searchQuery && (
               <button onClick={() => setSearchQuery("")} className="p-2 text-gray-400">
@@ -293,6 +305,7 @@ export function SearchBox() {
             {/* Mobile: fake input that opens fullscreen overlay */}
             <div
               onClick={() => {
+                window.scrollTo(0, 0);
                 setIsFocused(true);
                 if (history.length > 0) setShowHistory(true);
               }}
