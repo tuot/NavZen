@@ -7,7 +7,7 @@ import { Search, Sun, Moon, Clock, X, ArrowLeft } from "lucide-react";
 
 const HISTORY_KEY = "search-history";
 const ENGINE_KEY = "selected-engine";
-const MAX_HISTORY = 50;
+const MAX_HISTORY = 500;
 
 type SearchEngine = {
   id: string;
@@ -86,6 +86,10 @@ export function SearchBox() {
   const [showEngineDropdown, setShowEngineDropdown] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+
+  const filteredHistory = searchQuery.trim()
+    ? history.filter((item) => item.toLowerCase().includes(searchQuery.toLowerCase()))
+    : history;
   const [currentTime, setCurrentTime] = useState("");
 
   const [isFocused, setIsFocused] = useState(false);
@@ -210,7 +214,7 @@ export function SearchBox() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setShowHistory(false);
+                if (history.length > 0) setShowHistory(true);
               }}
               onKeyDown={handleKeyDown}
               placeholder="Search Anything..."
@@ -225,7 +229,7 @@ export function SearchBox() {
               <Search className="w-5 h-5" />
             </button>
           </div>
-          {showHistory && history.length > 0 && (
+          {showHistory && filteredHistory.length > 0 && (
             <div className="flex-1 overflow-y-auto">
               <div className="flex items-center justify-between px-6 py-2">
                 <span className="text-xs text-gray-400">Search History</span>
@@ -240,7 +244,7 @@ export function SearchBox() {
                   Clear
                 </button>
               </div>
-              {history.slice(0, 10).map((item) => (
+              {filteredHistory.slice(0, 10).map((item) => (
                 <div
                   key={item}
                   className="w-full flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left cursor-pointer"
@@ -335,11 +339,11 @@ export function SearchBox() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                setShowHistory(false);
+                if (history.length > 0) setShowHistory(true);
               }}
               onKeyDown={handleKeyDown}
               onClick={() => {
-                if (history.length > 0 && !searchQuery.trim()) setShowHistory(true);
+                if (history.length > 0) setShowHistory(true);
               }}
               placeholder="Search Anything..."
               className="hidden md:block flex-1 px-4 py-4 bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
@@ -353,7 +357,7 @@ export function SearchBox() {
             </button>
           </div>
           {/* Desktop history dropdown */}
-          {showHistory && history.length > 0 && (
+          {showHistory && filteredHistory.length > 0 && (
             <div className="hidden md:block absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-40">
               <div className="flex items-center justify-between px-6 py-2 border-b border-gray-100 dark:border-gray-700">
                 <span className="text-xs text-gray-400">Search History</span>
@@ -368,7 +372,7 @@ export function SearchBox() {
                   Clear
                 </button>
               </div>
-              {history.slice(0, 10).map((item) => (
+              {filteredHistory.slice(0, 10).map((item) => (
                 <div
                   key={item}
                   className="w-full flex items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-750 group"
