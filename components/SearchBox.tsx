@@ -196,86 +196,95 @@ export function SearchBox() {
   return (
     <>
       {/* Mobile fullscreen search overlay - portaled to body */}
-      {isFocused && mounted && createPortal(
-        <MobileOverlay>
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => {
-                setIsFocused(false);
-                setShowHistory(false);
-              }}
-              className="p-2 text-gray-600 dark:text-gray-400"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <input
-              autoFocus
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (history.length > 0) setShowHistory(true);
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder="Search Anything..."
-              className="flex-1 py-2 bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="p-2 text-gray-400">
-                <X className="w-4 h-4" />
+      {isFocused &&
+        mounted &&
+        createPortal(
+          <MobileOverlay>
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => {
+                  setIsFocused(false);
+                  setShowHistory(false);
+                }}
+                className="p-2 text-gray-600 dark:text-gray-400"
+              >
+                <ArrowLeft className="w-5 h-5" />
               </button>
-            )}
-            <button onClick={() => handleSearch(searchQuery)} className="p-2 text-blue-500">
-              <Search className="w-5 h-5" />
-            </button>
-          </div>
-          {showHistory && filteredHistory.length > 0 && (
-            <div className="flex-1 overflow-y-auto">
-              <div className="flex items-center justify-between px-6 py-2">
-                <span className="text-xs text-gray-400">Search History</span>
+              <input
+                autoFocus
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (history.length > 0) setShowHistory(true);
+                }}
+                onKeyDown={handleKeyDown}
+                placeholder="Search Anything..."
+                className="flex-1 py-2 bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400"
+              />
+              {searchQuery && (
                 <button
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    setHistory([]);
-                    localStorage.removeItem(HISTORY_KEY);
-                    setShowHistory(false);
-                  }}
-                  onClick={() => {
-                    setHistory([]);
-                    localStorage.removeItem(HISTORY_KEY);
-                    setShowHistory(false);
-                  }}
-                  className="text-xs text-gray-400 hover:text-red-500"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onTouchStart={(e) => e.preventDefault()}
+                  onClick={() => { setSearchQuery(""); if (history.length > 0) setShowHistory(true); }}
+                  className="p-2 text-gray-400"
                 >
-                  Clear
+                  <X className="w-4 h-4" />
                 </button>
-              </div>
-              {filteredHistory.slice(0, 10).map((item) => (
-                <div
-                  key={item}
-                  className="w-full flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left cursor-pointer"
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    addToHistory(item);
-                    window.open(`${selectedEngine.url}${encodeURIComponent(item)}`, "_blank");
-                  }}
-                  onClick={() => {
-                    addToHistory(item);
-                    window.open(`${selectedEngine.url}${encodeURIComponent(item)}`, "_blank");
-                  }}
-                >
-                  <Clock className="w-4 h-4 text-gray-400 shrink-0" />
-                  <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">{item}</span>
-                </div>
-              ))}
+              )}
+              <button onClick={() => handleSearch(searchQuery)} className="p-2 text-blue-500">
+                <Search className="w-5 h-5" />
+              </button>
             </div>
-          )}
-        </MobileOverlay>,
-        document.body
-      )}
+            {showHistory && filteredHistory.length > 0 && (
+              <div className="flex-1 overflow-y-auto">
+                <div className="flex items-center justify-between px-6 py-2">
+                  <span className="text-xs text-gray-400">Search History</span>
+                  <button
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      setHistory([]);
+                      localStorage.removeItem(HISTORY_KEY);
+                      setShowHistory(false);
+                    }}
+                    onClick={() => {
+                      setHistory([]);
+                      localStorage.removeItem(HISTORY_KEY);
+                      setShowHistory(false);
+                    }}
+                    className="text-xs text-gray-400 hover:text-red-500"
+                  >
+                    Clear
+                  </button>
+                </div>
+                {filteredHistory.slice(0, 10).map((item) => (
+                  <div
+                    key={item}
+                    className="w-full flex items-center gap-3 px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 text-left cursor-pointer"
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      addToHistory(item);
+                      window.open(`${selectedEngine.url}${encodeURIComponent(item)}`, "_blank");
+                    }}
+                    onClick={() => {
+                      addToHistory(item);
+                      window.open(`${selectedEngine.url}${encodeURIComponent(item)}`, "_blank");
+                    }}
+                  >
+                    <Clock className="w-4 h-4 text-gray-400 shrink-0" />
+                    <span className="flex-1 text-gray-700 dark:text-gray-300 truncate">{item}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </MobileOverlay>,
+          document.body,
+        )}
 
       {/* Home view */}
-      <div className={`fixed inset-0 flex flex-col items-center px-4 pt-[20vh] ${isFocused ? "hidden md:flex" : ""}`}>
+      <div
+        className={`fixed inset-0 flex flex-col items-center px-4 pt-[20vh] ${isFocused ? "hidden md:flex" : ""}`}
+      >
         {mounted && (
           <div className="mb-8 text-6xl font-light text-gray-800 dark:text-gray-200 tabular-nums">
             {currentTime}
@@ -305,7 +314,14 @@ export function SearchBox() {
                 onClick={() => setShowEngineDropdown(!showEngineDropdown)}
                 className="flex items-center justify-center px-4 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-full transition-colors"
               >
-                <img src={selectedEngine.icon} alt={selectedEngine.name} className="w-5 h-5" onError={(e) => { e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${selectedEngine.name[0]}</text></svg>`; }} />
+                <img
+                  src={selectedEngine.icon}
+                  alt={selectedEngine.name}
+                  className="w-5 h-5"
+                  onError={(e) => {
+                    e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${selectedEngine.name[0]}</text></svg>`;
+                  }}
+                />
               </button>
               {showEngineDropdown && (
                 <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 min-w-[160px]">
@@ -319,7 +335,14 @@ export function SearchBox() {
                           : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                       }`}
                     >
-                      <img src={engine.icon} alt={engine.name} className="w-5 h-5" onError={(e) => { e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${engine.name[0]}</text></svg>`; }} />
+                      <img
+                        src={engine.icon}
+                        alt={engine.name}
+                        className="w-5 h-5"
+                        onError={(e) => {
+                          e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${engine.name[0]}</text></svg>`;
+                        }}
+                      />
                       <span>{engine.name}</span>
                     </button>
                   ))}
@@ -354,6 +377,15 @@ export function SearchBox() {
               placeholder="Search Anything..."
               className="hidden md:block flex-1 px-4 py-4 bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
+            {searchQuery && (
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { setSearchQuery(""); if (history.length > 0) setShowHistory(true); inputRef.current?.focus(); }}
+                className="hidden md:block p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={() => handleSearch(searchQuery)}
               className="p-4 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-r-full transition-colors"
@@ -386,7 +418,10 @@ export function SearchBox() {
                   <Clock className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
                   <button
                     className="flex-1 text-left text-gray-700 dark:text-gray-300 truncate"
-                    onClick={() => { setSearchQuery(item); handleSearch(item); }}
+                    onClick={() => {
+                      setSearchQuery(item);
+                      handleSearch(item);
+                    }}
                   >
                     {item}
                   </button>
