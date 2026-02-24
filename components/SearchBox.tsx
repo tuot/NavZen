@@ -61,6 +61,23 @@ const searchEngines: SearchEngine[] = [
   },
 ];
 
+function MobileOverlay({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    const scrollReset = () => window.scrollTo(0, 0);
+    window.addEventListener("scroll", scrollReset);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("scroll", scrollReset);
+    };
+  }, []);
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[9999] bg-white dark:bg-gray-900 flex flex-col md:hidden" style={{ height: "100dvh" }}>
+      {children}
+    </div>
+  );
+}
+
 export function SearchBox() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -176,7 +193,7 @@ export function SearchBox() {
     <>
       {/* Mobile fullscreen search overlay - portaled to body */}
       {isFocused && mounted && createPortal(
-        <div className="fixed inset-0 z-[9999] bg-white dark:bg-gray-900 flex flex-col md:hidden">
+        <MobileOverlay>
           <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-700">
             <button
               onClick={() => {
@@ -243,7 +260,7 @@ export function SearchBox() {
               ))}
             </div>
           )}
-        </div>,
+        </MobileOverlay>,
         document.body
       )}
 
