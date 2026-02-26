@@ -237,7 +237,7 @@ export function SearchBox() {
               </button>
             </div>
             {showHistory && filteredHistory.length > 0 && (
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto min-h-0">
                 <div className="flex items-center justify-between px-6 py-2">
                   <span className="text-xs text-gray-400">Search History</span>
                   <button
@@ -396,7 +396,7 @@ export function SearchBox() {
           </div>
           {/* Desktop history dropdown */}
           {showHistory && filteredHistory.length > 0 && (
-            <div className="hidden md:block absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-40">
+            <div className="hidden md:block absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-40 max-h-[60vh] overflow-y-auto">
               <div className="flex items-center justify-between px-6 py-2 border-b border-gray-100 dark:border-gray-700">
                 <span className="text-xs text-gray-400">Search History</span>
                 <button
