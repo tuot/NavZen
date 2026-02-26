@@ -155,11 +155,11 @@ export function SearchBox() {
     });
   }, []);
 
-  // Close dropdowns on outside click
+  // Close dropdowns on outside click (desktop only for history, since mobile uses overlay)
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowHistory(false);
+        if (!isFocused) setShowHistory(false);
       }
       if (engineDropdownRef.current && !engineDropdownRef.current.contains(event.target as Node)) {
         setShowEngineDropdown(false);
@@ -168,7 +168,7 @@ export function SearchBox() {
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isFocused]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
