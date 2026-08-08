@@ -20,7 +20,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "NavZen - Smart Search Hub",
+  title: "SZen - Smart Search Hub",
   description:
     "A clean, fast search hub with multiple search engines, real-time suggestions, search history, and dark mode. Your minimal new tab page.",
   keywords: [
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     "search suggestions",
   ],
   openGraph: {
-    title: "NavZen - Smart Search Hub",
+    title: "SZen - Smart Search Hub",
     description:
       "A clean, fast search hub with multiple search engines, real-time suggestions, and dark mode.",
     type: "website",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "NavZen - Smart Search Hub",
+    title: "SZen - Smart Search Hub",
     description:
       "A clean, fast search hub with multiple search engines, real-time suggestions, and dark mode.",
   },

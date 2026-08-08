@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "NavZen - Smart Search Hub";
+export const alt = "SZen - Smart Search Hub";
 
 export default function OgImage() {
   return new ImageResponse(
@@ -38,9 +38,9 @@ export default function OgImage() {
               justifyContent: "center",
             }}
           >
-            <span style={{ fontSize: 40, fontWeight: 800, color: "white" }}>N</span>
+            <span style={{ fontSize: 40, fontWeight: 800, color: "white" }}>S</span>
           </div>
-          <span style={{ fontSize: 56, fontWeight: 700, color: "white" }}>NavZen</span>
+          <span style={{ fontSize: 56, fontWeight: 700, color: "white" }}>SZen</span>
         </div>
         <span style={{ fontSize: 24, color: "rgba(255,255,255,0.5)" }}>
           Smart Search Hub
