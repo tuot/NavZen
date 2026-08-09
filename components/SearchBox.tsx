@@ -59,6 +59,24 @@ const searchEngines: SearchEngine[] = [
     url: "https://yandex.com/search/?text=",
     icon: "https://yandex.com/favicon.ico",
   },
+  {
+    id: "github",
+    name: "GitHub",
+    url: "https://github.com/search?q=",
+    icon: "https://github.com/favicon.ico",
+  },
+  {
+    id: "youtube",
+    name: "YouTube",
+    url: "https://www.youtube.com/results?search_query=",
+    icon: "https://www.youtube.com/favicon.ico",
+  },
+  {
+    id: "perplexity",
+    name: "Perplexity",
+    url: "https://www.perplexity.ai/search?q=",
+    icon: "https://www.perplexity.ai/favicon.ico",
+  },
 ];
 
 function MobileOverlay({ children }: { children: React.ReactNode }) {
@@ -325,28 +343,30 @@ export function SearchBox() {
                 />
               </button>
               {showEngineDropdown && (
-                <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 min-w-[160px]">
-                  {searchEngines.map((engine) => (
-                    <button
-                      key={engine.id}
-                      onClick={() => handleEngineSelect(engine)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                        selectedEngine.id === engine.id
-                          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                      }`}
-                    >
-                      <img
-                        src={engine.icon}
-                        alt={engine.name}
-                        className="w-5 h-5"
-                        onError={(e) => {
-                          e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${engine.name[0]}</text></svg>`;
-                        }}
-                      />
-                      <span>{engine.name}</span>
-                    </button>
-                  ))}
+                <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 w-[280px] p-1.5">
+                  <div className="grid grid-cols-2 gap-0.5">
+                    {searchEngines.map((engine) => (
+                      <button
+                        key={engine.id}
+                        onClick={() => handleEngineSelect(engine)}
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors ${
+                          selectedEngine.id === engine.id
+                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        }`}
+                      >
+                        <img
+                          src={engine.icon}
+                          alt={engine.name}
+                          className="w-4 h-4 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${engine.name[0]}</text></svg>`;
+                          }}
+                        />
+                        <span className="truncate">{engine.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
