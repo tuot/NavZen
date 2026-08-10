@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
 import { Search, Sun, Moon, Clock, X, ArrowLeft } from "lucide-react";
@@ -13,7 +13,7 @@ type SearchEngine = {
   id: string;
   name: string;
   url: string;
-  icon: string;
+  icon: string; // emoji, no network needed
 };
 
 const searchEngines: SearchEngine[] = [
@@ -21,69 +21,93 @@ const searchEngines: SearchEngine[] = [
     id: "google",
     name: "Google",
     url: "https://www.google.com/search?q=",
-    icon: "https://www.google.com/favicon.ico",
+    icon: "/icons/google.png",
   },
   {
     id: "bing",
     name: "Bing",
     url: "https://www.bing.com/search?q=",
-    icon: "https://www.bing.com/favicon.ico",
+    icon: "/icons/bing.png",
   },
   {
     id: "baidu",
     name: "Baidu",
     url: "https://www.baidu.com/s?wd=",
-    icon: "https://www.baidu.com/favicon.ico",
+    icon: "/icons/baidu.png",
   },
   {
     id: "duckduckgo",
     name: "DuckDuckGo",
     url: "https://duckduckgo.com/?q=",
-    icon: "https://duckduckgo.com/favicon.ico",
+    icon: "/icons/duckduckgo.png",
   },
   {
     id: "Dick.ai",
     name: "Dick.ai",
     url: "https://duck.ai/chat?duckai=1&q=",
-    icon: "https://duck.ai/favicon.ico",
+    icon: "/icons/duckai.png",
   },
   {
     id: "yahoo",
     name: "Yahoo",
     url: "https://search.yahoo.com/search?p=",
-    icon: "https://www.yahoo.com/favicon.ico",
+    icon: "/icons/yahoo.png",
   },
   {
     id: "yandex",
     name: "Yandex",
     url: "https://yandex.com/search/?text=",
-    icon: "https://yandex.com/favicon.ico",
+    icon: "/icons/yandex.png",
   },
   {
     id: "github",
     name: "GitHub",
     url: "https://github.com/search?q=",
-    icon: "https://github.com/favicon.ico",
+    icon: "/icons/github.png",
   },
   {
     id: "youtube",
     name: "YouTube",
     url: "https://www.youtube.com/results?search_query=",
-    icon: "https://www.youtube.com/favicon.ico",
+    icon: "/icons/youtube.png",
   },
   {
     id: "perplexity",
     name: "Perplexity",
     url: "https://www.perplexity.ai/search?q=",
-    icon: "https://www.perplexity.ai/favicon.ico",
+    icon: "/icons/perplexity.png",
   },
 ];
+
+// Isolated clock – ticks every second without re-rendering parent
+const ClockDisplay = memo(function ClockDisplay() {
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
+      );
+    };
+    update();
+    const timer = setInterval(update, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  if (!currentTime) return null;
+  return (
+    <div className="mb-8 text-6xl font-light text-gray-800 dark:text-gray-200 tabular-nums">
+      {currentTime}
+    </div>
+  );
+});
 
 function MobileOverlay({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.body.style.overflow = "hidden";
     const scrollReset = () => window.scrollTo(0, 0);
-    window.addEventListener("scroll", scrollReset);
+    window.addEventListener("scroll", scrollReset, { passive: true });
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("scroll", scrollReset);
@@ -94,6 +118,11 @@ function MobileOverlay({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   );
+}
+
+// Local engine icon – loaded from public/icons/, zero network cost at runtime
+function EngineIcon({ engine, size = 20 }: { engine: SearchEngine; size?: number }) {
+  return <img src={engine.icon} alt={engine.name} width={size} height={size} className="shrink-0" />;
 }
 
 export function SearchBox() {
@@ -108,7 +137,6 @@ export function SearchBox() {
   const filteredHistory = searchQuery.trim()
     ? history.filter((item) => item.toLowerCase().includes(searchQuery.toLowerCase()))
     : history;
-  const [currentTime, setCurrentTime] = useState("");
 
   const [isFocused, setIsFocused] = useState(false);
 
@@ -129,19 +157,6 @@ export function SearchBox() {
         if (engine) setSelectedEngine(engine);
       }
     } catch {}
-  }, []);
-
-  // Clock
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })
-      );
-    };
-    update();
-    const timer = setInterval(update, 1000);
-    return () => clearInterval(timer);
   }, []);
 
   // Keyboard shortcut: "/" to focus search
@@ -304,11 +319,7 @@ export function SearchBox() {
       <div
         className={`fixed inset-0 flex flex-col items-center px-4 pt-[20vh] ${isFocused ? "hidden md:flex" : ""}`}
       >
-        {mounted && (
-          <div className="mb-8 text-6xl font-light text-gray-800 dark:text-gray-200 tabular-nums">
-            {currentTime}
-          </div>
-        )}
+        {mounted && <ClockDisplay />}
         <div className="absolute top-6 right-6">
           <button
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
@@ -331,16 +342,9 @@ export function SearchBox() {
             <div className="relative shrink-0" ref={engineDropdownRef}>
               <button
                 onClick={() => setShowEngineDropdown(!showEngineDropdown)}
-                className="flex items-center justify-center px-4 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-full transition-colors"
+                className="flex items-center justify-center pl-5 pr-3 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-full transition-colors"
               >
-                <img
-                  src={selectedEngine.icon}
-                  alt={selectedEngine.name}
-                  className="w-5 h-5"
-                  onError={(e) => {
-                    e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${selectedEngine.name[0]}</text></svg>`;
-                  }}
-                />
+                <EngineIcon engine={selectedEngine} size={20} />
               </button>
               {showEngineDropdown && (
                 <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 w-[280px] p-1.5">
@@ -355,14 +359,7 @@ export function SearchBox() {
                             : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                         }`}
                       >
-                        <img
-                          src={engine.icon}
-                          alt={engine.name}
-                          className="w-4 h-4 shrink-0"
-                          onError={(e) => {
-                            e.currentTarget.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>${engine.name[0]}</text></svg>`;
-                          }}
-                        />
+                        <EngineIcon engine={engine} size={16} />
                         <span className="truncate">{engine.name}</span>
                       </button>
                     ))}
@@ -462,3 +459,4 @@ export function SearchBox() {
     </>
   );
 }
+
