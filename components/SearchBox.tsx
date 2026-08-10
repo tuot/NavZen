@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "next-themes";
-import { Search, Sun, Moon, Clock, X, ArrowLeft } from "lucide-react";
+import { Search, Sun, Moon, Clock, X, ArrowLeft, Palette } from "lucide-react";
+import { bgThemes } from "./BackgroundBlobs";
 
 const HISTORY_KEY = "search-history";
 const ENGINE_KEY = "selected-engine";
@@ -125,7 +126,9 @@ function EngineIcon({ engine, size = 20 }: { engine: SearchEngine; size?: number
   return <img src={engine.icon} alt={engine.name} width={size} height={size} className="shrink-0" />;
 }
 
-export function SearchBox() {
+export function SearchBox({ bgThemeId, onBgThemeChange }: { bgThemeId: string; onBgThemeChange: (id: string) => void }) {
+  const [showBgPicker, setShowBgPicker] = useState(false);
+  const bgPickerRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [selectedEngine, setSelectedEngine] = useState<SearchEngine>(searchEngines[0]);
@@ -196,6 +199,9 @@ export function SearchBox() {
       }
       if (engineDropdownRef.current && !engineDropdownRef.current.contains(event.target as Node)) {
         setShowEngineDropdown(false);
+      }
+      if (bgPickerRef.current && !bgPickerRef.current.contains(event.target as Node)) {
+        setShowBgPicker(false);
       }
     }
 
@@ -320,7 +326,41 @@ export function SearchBox() {
         className={`fixed inset-0 flex flex-col items-center px-4 pt-[20vh] ${isFocused ? "hidden md:flex" : ""}`}
       >
         {mounted && <ClockDisplay />}
-        <div className="absolute top-6 right-6">
+        <div className="absolute top-6 right-6 flex items-center gap-2">
+          {/* Background theme picker */}
+          <div className="relative" ref={bgPickerRef}>
+            <button
+              onClick={() => setShowBgPicker(!showBgPicker)}
+              className="p-3 rounded-full transition-all duration-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+              aria-label="Switch background"
+            >
+              <Palette className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+            </button>
+            {showBgPicker && (
+              <div className="absolute top-full right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-2 z-50 w-[180px]">
+                <div className="grid grid-cols-3 gap-2">
+                  {bgThemes.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => { onBgThemeChange(t.id); setShowBgPicker(false); }}
+                      className={`flex flex-col items-center gap-1.5 p-2 rounded-lg transition-colors ${
+                        bgThemeId === t.id
+                          ? "bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-400"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full shadow-sm border border-gray-200 dark:border-gray-600"
+                        style={{ background: t.preview }}
+                      />
+                      <span className="text-[10px] text-gray-500 dark:text-gray-400">{t.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* Dark / Light toggle */}
           <button
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
             className="p-3 rounded-full transition-all duration-300 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
