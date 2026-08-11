@@ -385,7 +385,11 @@ export function SearchBox({ bgThemeId, onBgThemeChange }: { bgThemeId: string; o
                 onClick={() => setShowEngineDropdown(!showEngineDropdown)}
                 className="flex items-center justify-center pl-5 pr-3 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-l-full transition-colors"
               >
-                <EngineIcon engine={selectedEngine} size={20} />
+                {searchEngines.map((engine) => (
+                  <span key={engine.id} className={engine.id === selectedEngine.id ? "" : "hidden"}>
+                    <EngineIcon engine={engine} size={20} />
+                  </span>
+                ))}
               </button>
               <div className={`absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 w-[280px] p-1.5 transition-all duration-150 origin-top-left ${
                 showEngineDropdown
