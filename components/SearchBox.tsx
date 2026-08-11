@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Search, Sun, Moon, Clock, X, ArrowLeft, Palette } from "lucide-react";
 import { bgThemes } from "./BackgroundBlobs";
@@ -121,9 +122,9 @@ function MobileOverlay({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Local engine icon – loaded from public/icons/, zero network cost at runtime
+// Local engine icon – next/image handles caching, format optimisation & preload
 function EngineIcon({ engine, size = 20 }: { engine: SearchEngine; size?: number }) {
-  return <img src={engine.icon} alt={engine.name} width={size} height={size} className="shrink-0" />;
+  return <Image src={engine.icon} alt={engine.name} width={size} height={size} className="shrink-0" />;
 }
 
 export function SearchBox({ bgThemeId, onBgThemeChange }: { bgThemeId: string; onBgThemeChange: (id: string) => void }) {
@@ -386,26 +387,28 @@ export function SearchBox({ bgThemeId, onBgThemeChange }: { bgThemeId: string; o
               >
                 <EngineIcon engine={selectedEngine} size={20} />
               </button>
-              {showEngineDropdown && (
-                <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 w-[280px] p-1.5">
-                  <div className="grid grid-cols-2 gap-0.5">
-                    {searchEngines.map((engine) => (
-                      <button
-                        key={engine.id}
-                        onClick={() => handleEngineSelect(engine)}
-                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors ${
-                          selectedEngine.id === engine.id
-                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                            : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                        }`}
-                      >
-                        <EngineIcon engine={engine} size={16} />
-                        <span className="truncate">{engine.name}</span>
-                      </button>
-                    ))}
-                  </div>
+              <div className={`absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 w-[280px] p-1.5 transition-all duration-150 origin-top-left ${
+                showEngineDropdown
+                  ? "opacity-100 visible scale-100"
+                  : "opacity-0 invisible scale-95 pointer-events-none"
+              }`}>
+                <div className="grid grid-cols-2 gap-0.5">
+                  {searchEngines.map((engine) => (
+                    <button
+                      key={engine.id}
+                      onClick={() => handleEngineSelect(engine)}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left text-sm transition-colors ${
+                        selectedEngine.id === engine.id
+                          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      }`}
+                    >
+                      <EngineIcon engine={engine} size={16} />
+                      <span className="truncate">{engine.name}</span>
+                    </button>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
             <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
             {/* Mobile: fake input that opens fullscreen overlay */}
