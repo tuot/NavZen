@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Search, Sun, Moon, Clock, X, ArrowLeft, Palette } from "lucide-react";
 import { bgThemes } from "./BackgroundBlobs";
@@ -122,9 +121,9 @@ function MobileOverlay({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Local engine icon – next/image handles caching, format optimisation & preload
+// Local engine icon – native img with eager loading; next/image's lazy+fade causes flash on tiny icons
 function EngineIcon({ engine, size = 20 }: { engine: SearchEngine; size?: number }) {
-  return <Image src={engine.icon} alt={engine.name} width={size} height={size} className="shrink-0" />;
+  return <img src={engine.icon} alt={engine.name} width={size} height={size} loading="eager" decoding="async" className="shrink-0" />;
 }
 
 export function SearchBox({ bgThemeId, onBgThemeChange }: { bgThemeId: string; onBgThemeChange: (id: string) => void }) {
